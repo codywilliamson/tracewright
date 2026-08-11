@@ -72,13 +72,39 @@ Uncorrelated commits render as unattributed, visibly. Instrumentation coverage i
 itself evidence. The audit must show where its sight ends.
 *Evidence:* formulation-attack Attack 3.
 
+**D-011 — Renamed: Chronicler → Tracewright.** *(2026-08-11)*
+Public/project name is Tracewright. "Chronicler" was collision-heavy (audit
+trails, agent history, Chronicle-style naming). Tracewright implies a crafted,
+inspectable trace rather than generic "AI memory" — which matches the positioning:
+evidence ledger first, memory system second. Avoid "persistent memory for coding
+agents" as the first framing; that space is noisy and overhyped. Entries D-001…
+D-010 predate the rename and are left as written.
+*Evidence:* design discussion 2026-08-11.
+
+**D-012 — `kind` classifies why the record exists, not the truth of its payload.**
+*(2026-08-11, extends D-002)*
+Observed events routinely carry assertion material in their payloads
+(`TaskCompleted(result: success)`, `last_assistant_message`, commit messages).
+Payload claim material becomes first-class asserted evidence only via derivation
+(with links) or explicit emission. Prevents labeling agents' claims as ground truth.
+*Evidence:* notes/2026-08-11-formulation-attack.md Attack 1 (carrier vs claim).
+
+**D-013 — v0.1 acceptance is constrained to verified capture.** *(2026-08-11,
+extends D-005, D-010)*
+No structured exit codes (success/failure binary via PostToolUse vs
+PostToolUseFailure). No structured agent assertions. Correlation only via shared
+identifiers, never heuristics. Unattributed/unknown states render explicitly.
+Milestone: a trustworthy timeline of this repo's own development.
+*Evidence:* formulation-attack Attack 2; specs/2026-08-11-v0.1-design.md.
+
 ---
 
 ## Open (deliberately)
 
 - Git hook interop: `core.hooksPath` vs dispatcher/chaining (commit-guard sets it
-  wholesale; Chronicler must coexist with it)
+  wholesale; Tracewright must coexist with it)
 - Promotion mechanism (D-004 defers it)
-- Exact SQLite schema and envelope field set → the v0.1 spec
-- What a "Chronicler Session" projection means (D-003 defers until real data)
+- What a "Tracewright Session" projection means (D-003 defers until real data)
+- Whether `CLAUDE*` env at post-commit time carries a usable session marker
+  (verify during implementation)
 - Codex adapter (validates protocol independence; post-v0.1)
