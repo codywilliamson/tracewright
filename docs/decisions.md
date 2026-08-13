@@ -97,6 +97,93 @@ identifiers, never heuristics. Unattributed/unknown states render explicitly.
 Milestone: a trustworthy timeline of this repo's own development.
 *Evidence:* formulation-attack Attack 2; specs/2026-08-11-v0.1-design.md.
 
+**D-014 — Trust boundary is the local machine; `kind` classifies provenance semantics, not tamper-resistance.** *(2026-08-11)*
+Tracewright is not tamper-proof and does not pretend to be; anything on the machine
+can pipe JSON at any `emit` command. Defaults encode the epistemic model instead:
+`emit raw` defaults to `kind: asserted`; claiming `observed` requires an explicit
+`--kind observed`. A human recording a note falls into asserted without thinking;
+claiming observation is a deliberate act; future deterministic integrations keep a
+legitimate escape hatch.
+*Why:* EvidenceKind is about provenance semantics, not cryptographic trustworthiness — pretending otherwise is theater.
+*Evidence:* design grilling 2026-08-11, Q1.
+
+**D-015 — Raw ingress is itself an adapter; Tracewright-owned envelope fields are stamped, never delegated.** *(2026-08-11)*
+`emit raw` runs as adapter `tracewright.raw`. Tracewright always stamps `event_id`,
+`received_at`, `adapter_version`; caller-supplied values for those are **rejected,
+not silently overwritten**. Caller supplies kind, event_type, emitter identity,
+correlation ids, `occurred_at` (defaults to invocation time), raw_ref, payload.
+Historical replay/import, if ever needed, is a separate future ingest mode — not a
+loosening of `emit raw`.
+*Why:* no adapter-less loophole in the provenance model; silent overwrite hides caller bugs an audit would later trip over.
+*Evidence:* design grilling 2026-08-11, Q7.
+
+**D-016 — Dual timestamps; best-effort ordering; no corrective heuristics without evidence.** *(2026-08-11)*
+`occurred_at` is stamped as the adapter's first action on invocation, before parsing
+or DB work; `received_at` is the persistence timestamp. Async hooks can in principle
+persist out of order; v0.1 renders best-effort chronological order and adds no
+rendering heuristics unless dogfooding shows real inversions — the evidence for that
+fix will be in the ledger itself.
+*Evidence:* design grilling 2026-08-11, Q2.
+
+**D-017 — Chronology wins; grouping is presentation metadata, never permission to reorder.** *(2026-08-11)*
+The timeline renders strict best-effort chronological order. Session/repository
+headers reprint whenever the stream switches; interleaved sessions render as
+interleaved — concurrency is evidence, and grouping it away would obscure it.
+*Evidence:* design grilling 2026-08-11, Q3.
+
+**D-018 — `docs/decisions.md` is the canonical decision log; no `docs/adr/`.** *(2026-08-11)*
+Agent-facing docs point here. The log already has IDs, cross-references, and
+supersede-don't-edit semantics; migrating to per-file ADRs buys churn, and two
+decision systems create permanent ambiguity.
+*Evidence:* design grilling 2026-08-11, Q4.
+
+**D-019 — Invariant: Tracewright preserves uncertainty rather than normalizing it away.** *(2026-08-11)*
+Architectural invariant, not an edge-case collection. Manifestations: carrier vs
+claim (D-012), nullable correlation ids (D-003), unattributed/unanchored rendering
+(D-010), best-effort ordering without corrective heuristics (D-016),
+asserted-by-default raw ingress (D-014), verbatim payload retention ahead of any
+derivation (D-006). Every point where Tracewright could guess, tidy, or coerce is a
+point where the ledger stops being trustworthy.
+*Evidence:* design grilling 2026-08-11, wrap-up.
+
+**D-020 — Raw ingress semantics, completed.** *(2026-08-11, extends D-014, D-015)*
+`emit raw` rejects `kind: derived` — derived means "Tracewright produced it from
+other evidence, with links," which is definitionally false for any external caller;
+the kind stays reserved for in-process derivation. `event_type` is free-form
+(convention, not enforcement: adapters own `claude.*` and `git.*`, `tracewright.*`
+is reserved for future derived events, manual events use unprefixed dotted names
+like `note.recorded`). `emitter_name` defaults to `manual` when omitted.
+*Why:* observed-via-raw has a legitimate future caller; derived-via-raw has none. Prefix enforcement would be the tamper-theater D-014 declined — the adapter stamp already preserves provenance.
+*Evidence:* design grilling 2026-08-11, Q8–Q10.
+
+**D-021 — The timeline's default view is the whole ledger; narrowing is a deliberate act.** *(2026-08-11)*
+No filter shows all repositories plus unanchored events (24h window). Bare `--repo`
+resolves the repository by walking up from cwd (same resolution adapters use);
+`--repo <id>` is explicit. No silent auto-scoping to the current repo.
+*Why:* auto-scoping would render the timeline narrower than the evidence without saying so — a D-019 violation in miniature.
+*Evidence:* design grilling 2026-08-11, Q11.
+
+**D-022 — `repo.id` is an opaque unique string, not a ULID.** *(2026-08-11)*
+Repository identity needs uniqueness and stability, not sortability. Manual
+onboarding: `uuidgen > .tracewright/repo.id`, commit it. No generator command;
+no auto-creation from hooks (a git hook must never write into the working tree
+as a side effect). `event_id` keeps ULID for its real reason.
+*Evidence:* design grilling 2026-08-11, Q12.
+
+**D-023 — Every `post-commit` firing is one `git.commit` event; no dedup, no lineage.** *(2026-08-11)*
+Amends, cherry-picks, and rebases produce multiple events with distinct shas —
+each commit-object creation genuinely happened, and dedup would be derivation by
+stealth. `post-rewrite` capture (old→new lineage) is deferred; revisit if amends
+prove common during dogfooding.
+*Evidence:* design grilling 2026-08-11, Q13.
+
+**D-024 — The store lazy-bootstraps; an empty ledger is a truthful state.** *(2026-08-11)*
+Any write path creates `~/.tracewright/`, the database, and the schema on first
+use — adapters run from hooks that must never fail and cannot depend on a human
+setup step. Read commands on a missing/empty store report "no events recorded"
+and exit 0. Migration check on every open.
+*Evidence:* design grilling 2026-08-11, Q14.
+
 ---
 
 ## Open (deliberately)
@@ -108,3 +195,5 @@ Milestone: a trustworthy timeline of this repo's own development.
 - Whether `CLAUDE*` env at post-commit time carries a usable session marker
   (verify during implementation)
 - Codex adapter (validates protocol independence; post-v0.1)
+- Historical replay/import ingest mode (explicitly not `emit raw` — D-015; future)
+- `post-rewrite` capture for rewrite lineage (D-023 defers; revisit if amends are common)
