@@ -10,8 +10,9 @@ emit.Add(EmitClaudeCommand.Build(invocationTimestamp));
 emit.Add(EmitGitCommand.Build());
 emit.Add(EmitRawCommand.Build(invocationTimestamp));
 
-// later: timeline, show
 var root = new RootCommand("tracewright: local-first evidence ledger for agentic development");
 root.Add(emit);
+root.Add(TimelineCommand.Build());
+root.Add(ShowCommand.Build());
 
 return root.Parse(args).Invoke();
