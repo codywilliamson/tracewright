@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "SessionStart":       [{ "hooks": [{ "type": "command", "command": "tracewright", "args": ["emit", "claude"], "async": true }] }],
+    "UserPromptSubmit":   [{ "hooks": [{ "type": "command", "command": "tracewright", "args": ["emit", "claude"], "async": true }] }],
+    "PreToolUse":         [{ "matcher": "*", "hooks": [{ "type": "command", "command": "tracewright", "args": ["emit", "claude"], "async": true }] }],
+    "PostToolUse":        [{ "matcher": "*", "hooks": [{ "type": "command", "command": "tracewright", "args": ["emit", "claude"], "async": true }] }],
+    "PostToolUseFailure": [{ "matcher": "*", "hooks": [{ "type": "command", "command": "tracewright", "args": ["emit", "claude"], "async": true }] }],
+    "Stop":               [{ "hooks": [{ "type": "command", "command": "tracewright", "args": ["emit", "claude"], "async": true }] }],
+    "SubagentStart":      [{ "hooks": [{ "type": "command", "command": "tracewright", "args": ["emit", "claude"], "async": true }] }],
+    "SubagentStop":       [{ "hooks": [{ "type": "command", "command": "tracewright", "args": ["emit", "claude"], "async": true }] }],
+    "TaskCreated":        [{ "hooks": [{ "type": "command", "command": "tracewright", "args": ["emit", "claude"], "async": true }] }],
+    "TaskCompleted":      [{ "hooks": [{ "type": "command", "command": "tracewright", "args": ["emit", "claude"], "async": true }] }],
+    "SessionEnd":         [{ "hooks": [{ "type": "command", "command": "tracewright", "args": ["emit", "claude"], "async": true }] }],
+    "PreCompact":         [{ "hooks": [{ "type": "command", "command": "tracewright", "args": ["emit", "claude"], "async": true }] }],
+    "PostCompact":        [{ "hooks": [{ "type": "command", "command": "tracewright", "args": ["emit", "claude"], "async": true }] }],
+    "WorktreeCreate":     [{ "hooks": [{ "type": "command", "command": "tracewright", "args": ["emit", "claude"], "async": true }] }],
+    "WorktreeRemove":     [{ "hooks": [{ "type": "command", "command": "tracewright", "args": ["emit", "claude"], "async": true }] }]
+  }
+}
