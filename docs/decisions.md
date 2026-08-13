@@ -192,8 +192,9 @@ and exit 0. Migration check on every open.
   wholesale; Tracewright must coexist with it)
 - Promotion mechanism (D-004 defers it)
 - What a "Tracewright Session" projection means (D-003 defers until real data)
-- Whether `CLAUDE*` env at post-commit time carries a usable session marker
-  (verify during implementation)
+- Correlation semantics for `CLAUDE_CODE_SESSION_ID` — verified present in
+  post-commit env 2026-08-13, captured in `payload.env_hints`; using it for
+  attribution is future derivation (D-013)
 - Codex adapter (validates protocol independence; post-v0.1)
 - Historical replay/import ingest mode (explicitly not `emit raw` — D-015; future)
 - `post-rewrite` capture for rewrite lineage (D-023 defers; revisit if amends are common)
