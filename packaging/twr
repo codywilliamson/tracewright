@@ -1,0 +1,3 @@
+#!/bin/sh
+# short alias for humans at a terminal; committed config always uses `tracewright`
+exec "$(dirname "$0")/tracewright" "$@"

@@ -28,7 +28,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        rid: [win-x64, linux-x64]
+        include:
+          - rid: win-x64
+            shim: twr.cmd
+          - rid: linux-x64
+            shim: twr
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-dotnet@v5
@@ -42,6 +46,7 @@ jobs:
           -p:IncludeNativeLibrariesForSelfExtract=true
           -p:DebugType=embedded
           -o publish/${{ matrix.rid }}
+      - run: cp packaging/${{ matrix.shim }} publish/${{ matrix.rid }}/
       - uses: actions/upload-artifact@v5
         with:
           name: tracewright-${{ matrix.rid }}
