@@ -184,12 +184,28 @@ setup step. Read commands on a missing/empty store report "no events recorded"
 and exit 0. Migration check on every open.
 *Evidence:* design grilling 2026-08-11, Q14.
 
+**D-025 — `tracewright init` is an explicit onboarding command; hooks still never write into the working tree.** *(2026-08-14, supersedes the "no generator command" clause of D-022)*
+The five v0.1 pieces have proven out — the condition the spec attached to `init` —
+so onboarding stops being a manual checklist. `tracewright init` creates
+`.tracewright/repo.id`, merges the hook block into `.claude/settings.json`, and
+installs the `post-commit` hook. What D-022 actually protects survives intact:
+nothing *implicit* writes into the working tree — a git hook still never creates
+`repo.id` as a side effect; only a human running `init` does. `init` is
+non-destructive and idempotent: an existing `repo.id` is never regenerated,
+existing settings keys are preserved, and a foreign `post-commit` hook is left
+alone with instructions rather than overwritten. Hook path resolution goes
+through `git rev-parse --git-path hooks`, so `core.hooksPath` setups get the hook
+where git will actually look for it.
+*Why:* D-022's hazard was silent side-effect writes, not deliberate user commands; manual onboarding is where adoption dies.
+*Evidence:* specs/2026-08-11-v0.1-design.md §10; dogfooding 2026-08-13/14.
+
 ---
 
 ## Open (deliberately)
 
-- Git hook interop: `core.hooksPath` vs dispatcher/chaining (commit-guard sets it
-  wholesale; Tracewright must coexist with it)
+- Git hook chaining: `init` writes `post-commit` where `core.hooksPath` points
+  (D-025), but declines to touch a foreign hook — dispatcher/chaining with
+  commit-guard is still unsolved
 - Promotion mechanism (D-004 defers it)
 - What a "Tracewright Session" projection means (D-003 defers until real data)
 - Correlation semantics for `CLAUDE_CODE_SESSION_ID` — verified present in
