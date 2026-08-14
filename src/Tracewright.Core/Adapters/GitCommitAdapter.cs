@@ -1,7 +1,6 @@
 using Tracewright.Core.Repositories;
 using Tracewright.Core.Primitives;
 using Tracewright.Abstractions;
-using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
 
@@ -22,7 +21,7 @@ public static class GitCommitAdapter
 
     public static EventEnvelope Build(string cwd, IReadOnlyDictionary<string, string?> environmentVariables)
     {
-        var fields = RunGit(cwd, "log", "-1",
+        var fields = GitCli.Run(cwd, "log", "-1",
                 $"--format=%H{FieldSeparator}%P{FieldSeparator}%an{FieldSeparator}%ae{FieldSeparator}%aI{FieldSeparator}%cI{FieldSeparator}%s",
                 "HEAD")
             .TrimEnd('\n')
@@ -36,10 +35,10 @@ public static class GitCommitAdapter
         var committerDate = fields[5];
         var subject = fields[6];
 
-        var branch = RunGit(cwd, "rev-parse", "--abbrev-ref", "HEAD").Trim();
-        var worktreeId = RunGit(cwd, "rev-parse", "--show-toplevel").Trim();
-        var gitVersion = RunGit(cwd, "--version").Trim();
-        var files = ParseNameStatus(RunGit(cwd, "diff-tree", "--no-commit-id", "--name-status", "-r", "--root", sha));
+        var branch = GitCli.Run(cwd, "rev-parse", "--abbrev-ref", "HEAD").Trim();
+        var worktreeId = GitCli.Run(cwd, "rev-parse", "--show-toplevel").Trim();
+        var gitVersion = GitCli.Run(cwd, "--version").Trim();
+        var files = ParseNameStatus(GitCli.Run(cwd, "diff-tree", "--no-commit-id", "--name-status", "-r", "--root", sha));
         var envHints = CollectEnvHints(environmentVariables);
 
         var payload = JsonSerializer.Serialize(new
@@ -84,32 +83,4 @@ public static class GitCommitAdapter
         environmentVariables
             .Where(kv => kv.Key.StartsWith(EnvHintPrefix, StringComparison.Ordinal) && kv.Value is not null)
             .ToDictionary(kv => kv.Key, kv => kv.Value!);
-
-    private static string RunGit(string workingDirectory, params string[] args)
-    {
-        var startInfo = new ProcessStartInfo("git")
-        {
-            WorkingDirectory = workingDirectory,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-        };
-        foreach (var arg in args)
-        {
-            startInfo.ArgumentList.Add(arg);
-        }
-
-        using var process = Process.Start(startInfo)
-            ?? throw new InvalidOperationException("failed to start git");
-        var stdout = process.StandardOutput.ReadToEnd();
-        var stderr = process.StandardError.ReadToEnd();
-        process.WaitForExit();
-
-        if (process.ExitCode != 0)
-        {
-            throw new InvalidOperationException($"git {string.Join(' ', args)} failed: {stderr.Trim()}");
-        }
-
-        return stdout;
-    }
 }
