@@ -47,26 +47,26 @@ public sealed class EventStoreTests : IDisposable
         string? worktreeId = "/repo",
         string? rawRef = """{"transcript_path":"/tmp/t.jsonl"}""",
         string payload = """{"tool_name":"Bash"}""") => new()
-    {
-        EventId = eventId ?? Ulid.NewUlid(),
-        OccurredAt = occurredAt,
-        ReceivedAt = receivedAt,
-        Kind = kind,
-        EventType = eventType,
-        EmitterName = emitterName,
-        EmitterVersion = emitterVersion,
-        AdapterVersion = adapterVersion,
-        OriginalEvent = originalEvent,
-        SessionId = sessionId,
-        PromptId = promptId,
-        ToolUseId = toolUseId,
-        AgentId = agentId,
-        ParentId = parentId,
-        RepositoryId = repositoryId,
-        WorktreeId = worktreeId,
-        RawRef = rawRef,
-        Payload = payload
-    };
+        {
+            EventId = eventId ?? Ulid.NewUlid(),
+            OccurredAt = occurredAt,
+            ReceivedAt = receivedAt,
+            Kind = kind,
+            EventType = eventType,
+            EmitterName = emitterName,
+            EmitterVersion = emitterVersion,
+            AdapterVersion = adapterVersion,
+            OriginalEvent = originalEvent,
+            SessionId = sessionId,
+            PromptId = promptId,
+            ToolUseId = toolUseId,
+            AgentId = agentId,
+            ParentId = parentId,
+            RepositoryId = repositoryId,
+            WorktreeId = worktreeId,
+            RawRef = rawRef,
+            Payload = payload
+        };
 
     [Fact]
     public void DefaultPath_points_to_user_profile_tracewright_directory()

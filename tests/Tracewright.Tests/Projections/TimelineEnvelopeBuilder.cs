@@ -19,18 +19,18 @@ internal static class TimelineEnvelopeBuilder
         string? eventId = null,
         string? originalEvent = null,
         string payload = "{}") => new()
-    {
-        EventId = eventId ?? Ulid.NewUlid(),
-        OccurredAt = occurredAt,
-        ReceivedAt = occurredAt,
-        Kind = kind,
-        EventType = eventType,
-        EmitterName = emitterName,
-        AdapterVersion = "0.1.0",
-        OriginalEvent = originalEvent,
-        SessionId = sessionId,
-        AgentId = agentId,
-        RepositoryId = repositoryId,
-        Payload = payload,
-    };
+        {
+            EventId = eventId ?? Ulid.NewUlid(),
+            OccurredAt = occurredAt,
+            ReceivedAt = occurredAt,
+            Kind = kind,
+            EventType = eventType,
+            EmitterName = emitterName,
+            AdapterVersion = "0.1.0",
+            OriginalEvent = originalEvent,
+            SessionId = sessionId,
+            AgentId = agentId,
+            RepositoryId = repositoryId,
+            Payload = payload,
+        };
 }
