@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using System.CommandLine;
 using Tracewright.Abstractions;
 using Tracewright.Cli.Commands;
 using Tracewright.Cli.Infrastructure;
@@ -16,16 +15,8 @@ using var services = new ServiceCollection()
     .AddSingleton<EmitRawCommand>()
     .AddSingleton<TimelineCommand>()
     .AddSingleton<ShowCommand>()
+    .AddSingleton<RootCommandFactory>()
     .BuildServiceProvider();
 
-var emit = new Command("emit", "record an event into the ledger");
-emit.Add(services.GetRequiredService<EmitClaudeCommand>().Build(invocationTimestamp));
-emit.Add(services.GetRequiredService<EmitGitCommand>().Build());
-emit.Add(services.GetRequiredService<EmitRawCommand>().Build(invocationTimestamp));
-
-var root = new RootCommand("tracewright: local-first evidence ledger for agentic development");
-root.Add(emit);
-root.Add(services.GetRequiredService<TimelineCommand>().Build());
-root.Add(services.GetRequiredService<ShowCommand>().Build());
-
+var root = services.GetRequiredService<RootCommandFactory>().Build(invocationTimestamp);
 return root.Parse(args).Invoke();
