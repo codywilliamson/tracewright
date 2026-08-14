@@ -21,27 +21,89 @@ evidence has the same truth value. Every record is classified:
 And the timeline shows where its sight ends: activity Tracewright cannot
 attribute renders as *unattributed* — truthful evidence, not a failure state.
 
-## Sequencing
-
-1. **Auditability first** — prove what happened during an agentic coding session
-2. **Project memory later** — distill trustworthy history once it exists
-3. **Context engineering after that** — give agents the project's memory, not the
-   project's entire history
-
-Tracewright is an evidence ledger first and a memory system second.
-
 ## Status
 
-**Design phase — building in public. Nothing is built yet.**
+**v0.1 works and records its own development.** The ledger, the ingest path, both
+adapters, and the read side are built and dogfooded into this repository — see
+[`docs/dogfood/`](docs/dogfood/) for exported evidence.
+
+Not built yet: derivation, promotion to project memory, a Codex adapter, and
+anything that ranks or summarizes. Evidence ledger first, memory system second.
+
+## Install
+
+Download a self-contained binary from the latest green [CI
+run](../../actions/workflows/ci.yml) — `tracewright-win-x64` or
+`tracewright-linux-x64`. One file, no .NET install required. On Windows, unblock
+it after extracting (`Unblock-File .\tracewright.exe`).
+
+Or build from source (.NET 10 SDK):
+
+```sh
+dotnet publish src/Tracewright.Cli -c Release --self-contained -r linux-x64 \
+  -o ~/.local/share/tracewright/bin
+ln -sf ~/.local/share/tracewright/bin/tracewright ~/.local/bin/tracewright
+```
+
+The store is created on first write at `~/.tracewright/tracewright.db`; reads
+never create it. `TRACEWRIGHT_DB` overrides the path.
+
+## Use
+
+```sh
+tracewright timeline                 # last 24h, whole ledger
+tracewright timeline --repo          # this repository (resolved from cwd)
+tracewright timeline --since 7d --type 'claude.*' --kind observed
+tracewright show 01KZ                # full envelope + verbatim payload, by id prefix
+```
+
+Recording is one ingest path, three entry points:
+
+| Command | Source | Kind |
+|---|---|---|
+| `tracewright emit claude` | Claude Code hook JSON on stdin | observed |
+| `tracewright emit git post-commit` | the current HEAD commit | observed |
+| `tracewright emit raw` | envelope JSON on stdin | asserted (`--kind observed` to override) |
+
+```sh
+echo '{"event_type":"note.recorded","payload":{"text":"chose sqlite over jsonl"}}' \
+  | tracewright emit raw
+```
+
+## Wire it into a repository
+
+1. Give the repo an identity — `mkdir .tracewright && uuidgen > .tracewright/repo.id`,
+   then commit it.
+2. Add the Claude Code hooks: see [`.claude/settings.json`](.claude/settings.json)
+   in this repo for all 15 events (`async: true`, so capture never blocks the agent).
+3. Add `.git/hooks/post-commit`:
+
+   ```sh
+   #!/bin/sh
+   tracewright emit git post-commit || true
+   exit 0
+   ```
+
+Both hooks always exit 0. A broken Tracewright must never break a commit or a
+session.
+
+## Development
+
+```sh
+dotnet build && dotnet test && dotnet format
+```
+
+CI runs the same three on every push. `Tracewright.Abstractions` holds the shared
+models and the store contract; `Tracewright.Core` implements storage, adapters,
+projections; `Tracewright.Cli` is composition and rendering only. Adding a command
+without documenting it here fails the test suite.
+
+## Documents
 
 | Document | What it is |
 |---|---|
 | [`docs/specs/2026-08-11-v0.1-design.md`](docs/specs/2026-08-11-v0.1-design.md) | **The v0.1 spec** — envelope, schema, adapters, timeline. |
 | [`docs/decisions.md`](docs/decisions.md) | Decision log — settled decisions and what's deliberately open. |
+| [`docs/dogfood/`](docs/dogfood/) | Ledger exports from this repo's own development. |
 | [`docs/seed.md`](docs/seed.md) | The original project seed (under the working name *Chronicler*), preserved verbatim. |
 | [`docs/notes/`](docs/notes/) | Dated working notes: the challenge pass on the seed, the verified Claude Code hook surface, and the formulation pressure test. |
-
-v0.1 is five pieces: an append-only event store (SQLite), a single ingest path
-(`tracewright emit`), a Claude Code hook adapter, a Git post-commit adapter, and
-a timeline. The first milestone is recursive: install Tracewright into this
-repository so the rest of its development is recorded by the tool itself.
