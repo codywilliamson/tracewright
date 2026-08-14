@@ -1,9 +1,7 @@
-using Tracewright.Cli.Infrastructure;
 using Tracewright.Cli.Rendering;
 using Tracewright.Core.Repositories;
 using Tracewright.Core.Primitives;
 using Tracewright.Core.Projections;
-using Tracewright.Core.Storage;
 using Tracewright.Abstractions;
 using System.CommandLine;
 using System.CommandLine.Parsing;
@@ -15,11 +13,11 @@ namespace Tracewright.Cli.Commands;
 /// with none given at all, defaults to the last 24h across the whole ledger (D-021). Bare --repo
 /// narrows to the repository resolved from cwd; --repo &lt;id&gt; is explicit — no silent auto-scoping.
 /// </summary>
-public static class TimelineCommand
+public sealed class TimelineCommand(IEventStore store)
 {
     private const string DefaultWindow = "24h";
 
-    public static Command Build()
+    public Command Build()
     {
         var repoOption = new Option<string?>("--repo") { Arity = ArgumentArity.ZeroOrOne };
         var sessionOption = new Option<string?>("--session");
@@ -41,7 +39,7 @@ public static class TimelineCommand
         return command;
     }
 
-    private static int Run(
+    private int Run(
         ParseResult parseResult,
         Option<string?> repoOption,
         Option<string?> sessionOption,
@@ -86,7 +84,6 @@ public static class TimelineCommand
             Kind = kind,
         };
 
-        var store = new EventStore(DbPath.Resolve());
         var envelopes = store.Query(query);
 
         if (envelopes.Count == 0)
@@ -96,7 +93,7 @@ public static class TimelineCommand
         }
 
         TimelineConsoleRenderer.Render(TimelineProjection.Build(envelopes));
-        PrintUnattributedNoteIfNeeded(store, query, sessionId);
+        PrintUnattributedNoteIfNeeded(query, sessionId);
         return 0;
     }
 
@@ -190,7 +187,7 @@ public static class TimelineCommand
 
     // --session excludes by correlation; when unattributed events share the window, say so
     // instead of silently narrowing the view (spec §8) — needs a second query without --session.
-    private static void PrintUnattributedNoteIfNeeded(EventStore store, EventQuery query, string? sessionId)
+    private void PrintUnattributedNoteIfNeeded(EventQuery query, string? sessionId)
     {
         if (sessionId is null)
         {

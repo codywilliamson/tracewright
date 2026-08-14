@@ -1,6 +1,6 @@
+using Tracewright.Abstractions;
 using Tracewright.Cli.Infrastructure;
 using Tracewright.Core.Adapters;
-using Tracewright.Core.Storage;
 using System.Collections;
 using System.CommandLine;
 
@@ -10,9 +10,9 @@ namespace Tracewright.Cli.Commands;
 /// `tracewright emit git post-commit` — queries git directly, emits git.commit (spec §6). Hook
 /// context: always exits 0; a broken Tracewright must never break a commit.
 /// </summary>
-public static class EmitGitCommand
+public sealed class EmitGitCommand(IEventStore store)
 {
-    public static Command Build()
+    public Command Build()
     {
         var postCommit = new Command("post-commit", "record the current HEAD commit as a git.commit event");
         postCommit.SetAction(_ => Run());
@@ -22,12 +22,12 @@ public static class EmitGitCommand
         return git;
     }
 
-    private static int Run()
+    private int Run()
     {
         try
         {
             var envelope = GitCommitAdapter.Build(Environment.CurrentDirectory, CurrentEnvironment());
-            new EventStore(DbPath.Resolve()).Append(envelope);
+            store.Append(envelope);
         }
         catch (Exception ex)
         {

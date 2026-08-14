@@ -1,6 +1,5 @@
-using Tracewright.Cli.Infrastructure;
+using Tracewright.Abstractions;
 using Tracewright.Core.Adapters;
-using Tracewright.Core.Storage;
 using System.CommandLine;
 
 namespace Tracewright.Cli.Commands;
@@ -9,9 +8,9 @@ namespace Tracewright.Cli.Commands;
 /// `tracewright emit raw` — envelope JSON on stdin (spec §10, adapter tracewright.raw, D-015).
 /// Human-facing: unlike the hook commands, validation errors print to stderr and exit nonzero.
 /// </summary>
-public static class EmitRawCommand
+public sealed class EmitRawCommand(IEventStore store)
 {
-    public static Command Build(string invocationTimestamp)
+    public Command Build(string invocationTimestamp)
     {
         var kindOption = new Option<string>("--kind") { DefaultValueFactory = _ => "asserted" };
 
@@ -21,13 +20,13 @@ public static class EmitRawCommand
         return command;
     }
 
-    private static int Run(string? kindFlag, string invocationTimestamp)
+    private int Run(string? kindFlag, string invocationTimestamp)
     {
         try
         {
             var stdin = Console.In.ReadToEnd();
             var envelope = RawEventAdapter.Build(stdin, kindFlag, invocationTimestamp);
-            new EventStore(DbPath.Resolve()).Append(envelope);
+            store.Append(envelope);
             Console.WriteLine(envelope.EventId);
             return 0;
         }

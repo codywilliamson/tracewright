@@ -1,6 +1,5 @@
-using Tracewright.Cli.Infrastructure;
+using Tracewright.Abstractions;
 using Tracewright.Cli.Rendering;
-using Tracewright.Core.Storage;
 using System.CommandLine;
 
 namespace Tracewright.Cli.Commands;
@@ -9,9 +8,9 @@ namespace Tracewright.Cli.Commands;
 /// `tracewright show <event-id-prefix>` — full envelope + verbatim payload (spec §10). Prefix
 /// resolution via FindByIdPrefix; ambiguous or missing prefixes are user errors, not crashes.
 /// </summary>
-public static class ShowCommand
+public sealed class ShowCommand(IEventStore store)
 {
-    public static Command Build()
+    public Command Build()
     {
         var prefixArgument = new Argument<string>("event-id-prefix");
 
@@ -21,9 +20,8 @@ public static class ShowCommand
         return command;
     }
 
-    private static int Run(string prefix)
+    private int Run(string prefix)
     {
-        var store = new EventStore(DbPath.Resolve());
         var matches = store.FindByIdPrefix(prefix);
 
         switch (matches.Count)
