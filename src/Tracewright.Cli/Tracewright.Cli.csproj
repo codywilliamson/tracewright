@@ -15,4 +15,21 @@
     <ProjectReference Include="..\Tracewright.Core\Tracewright.Core.csproj" />
   </ItemGroup>
 
+  <!-- the `twr` alias ships with every publish, so no install step has to create it (spec §10) -->
+  <Target Name="PublishTwrAlias" AfterTargets="Publish">
+    <PropertyGroup>
+      <_TwrTargetsWindows Condition="'$(RuntimeIdentifier)' != ''">$(RuntimeIdentifier.StartsWith('win'))</_TwrTargetsWindows>
+      <_TwrTargetsWindows Condition="'$(RuntimeIdentifier)' == ''">$([MSBuild]::IsOSPlatform('Windows'))</_TwrTargetsWindows>
+      <_TwrShimDirectory>$(MSBuildThisFileDirectory)..\..\packaging\</_TwrShimDirectory>
+    </PropertyGroup>
+
+    <Copy Condition="'$(_TwrTargetsWindows)' == 'true'"
+          SourceFiles="$(_TwrShimDirectory)twr.cmd" DestinationFolder="$(PublishDir)" />
+
+    <Copy Condition="'$(_TwrTargetsWindows)' != 'true'"
+          SourceFiles="$(_TwrShimDirectory)twr" DestinationFolder="$(PublishDir)" />
+    <Exec Condition="'$(_TwrTargetsWindows)' != 'true'"
+          Command="chmod +x &quot;$(PublishDir)twr&quot;" />
+  </Target>
+
 </Project>

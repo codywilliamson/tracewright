@@ -32,6 +32,8 @@ anything that ranks or summarizes. Evidence ledger first, memory system second.
 
 ## Install
 
+### Download a build
+
 Download a self-contained binary from the latest green [CI
 run](../../actions/workflows/ci.yml) — `tracewright-win-x64` or
 `tracewright-linux-x64`. No .NET install required. Each artifact also ships a
@@ -39,18 +41,49 @@ run](../../actions/workflows/ci.yml) — `tracewright-win-x64` or
 the exe after extracting (`Unblock-File .\tracewright.exe`); on Linux,
 `chmod +x tracewright twr`.
 
-Or build from source (.NET 10 SDK):
+### Build from source
+
+Needs the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) and Git.
+
+```sh
+git clone https://github.com/codywilliamson/tracewright
+cd tracewright
+```
+
+**Linux / macOS** — swap `linux-x64` for `osx-arm64` on Apple silicon:
 
 ```sh
 dotnet publish src/Tracewright.Cli -c Release --self-contained -r linux-x64 \
   -o ~/.local/share/tracewright/bin
 ln -sf ~/.local/share/tracewright/bin/tracewright ~/.local/bin/tracewright
-ln -sf ~/.local/share/tracewright/bin/tracewright ~/.local/bin/twr
+ln -sf ~/.local/share/tracewright/bin/twr ~/.local/bin/twr
 ```
 
+**Windows (PowerShell)** — publishes one exe beside the `twr` shim, then puts
+that folder on your user PATH:
+
+```powershell
+$dir = "$env:LOCALAPPDATA\Programs\tracewright"
+
+dotnet publish src\Tracewright.Cli -c Release --self-contained -r win-x64 `
+  -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true `
+  -p:DebugType=embedded -o $dir
+
+$userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
+if ($userPath -notlike "*$dir*") {
+    $newPath = if ($userPath) { "$userPath;$dir" } else { $dir }
+    [Environment]::SetEnvironmentVariable('Path', $newPath, 'User')
+}
+```
+
+Open a new terminal, then check it: `tracewright --version` and `twr --version`.
+Git for Windows supplies the `sh` that runs the post-commit hook, so
+`tracewright init` behaves the same there as anywhere else.
+
 **`twr` is an alias for `tracewright`** — every command below works under either
-name. Committed configuration (hooks, settings) always uses the canonical
-`tracewright`, since a repo can't assume the alias exists.
+name. Publishing emits it next to the binary, so there is nothing to set up by
+hand. Committed configuration (hooks, settings) always uses the canonical
+`tracewright`, since a repo can't assume the alias is on PATH.
 
 The store is created on first write at `~/.tracewright/tracewright.db`; reads
 never create it. `TRACEWRIGHT_DB` overrides the path.
@@ -101,7 +134,9 @@ session.
 ## Development
 
 ```sh
-dotnet build && dotnet test && dotnet format
+dotnet build
+dotnet test
+dotnet format
 ```
 
 CI runs the same three on every push. `Tracewright.Abstractions` holds the shared
