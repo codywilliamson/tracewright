@@ -1,4 +1,4 @@
-namespace Tracewright.Core;
+namespace Tracewright.Abstractions;
 
 /// <summary>
 /// lowercase text form of EvidenceKind — matches the events.kind CHECK constraint values verbatim.

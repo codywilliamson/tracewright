@@ -1,3 +1,4 @@
+using Tracewright.Abstractions;
 using System.Globalization;
 using System.Text;
 using Microsoft.Data.Sqlite;
@@ -10,7 +11,7 @@ namespace Tracewright.Core;
 /// empty ledger. One connection per operation, no shared state, so parallel async hook
 /// processes can write concurrently under WAL.
 /// </summary>
-public sealed class EventStore
+public sealed class EventStore : IEventStore
 {
     private const int SchemaVersion = 1;
     private const int BusyTimeoutMs = 5000;

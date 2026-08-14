@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/Tracewright.Abstractions/Tracewright.Abstractions.csproj" />
     <Project Path="src/Tracewright.Cli/Tracewright.Cli.csproj" />
     <Project Path="src/Tracewright.Core/Tracewright.Core.csproj" />
   </Folder>

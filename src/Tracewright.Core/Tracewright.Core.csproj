@@ -4,4 +4,8 @@
     <PackageReference Include="Microsoft.Data.Sqlite" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Tracewright.Abstractions\Tracewright.Abstractions.csproj" />
+  </ItemGroup>
+
 </Project>

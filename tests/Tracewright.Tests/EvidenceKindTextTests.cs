@@ -1,3 +1,4 @@
+using Tracewright.Abstractions;
 using Tracewright.Core;
 
 namespace Tracewright.Tests;

@@ -1,4 +1,4 @@
-namespace Tracewright.Core;
+namespace Tracewright.Abstractions;
 
 /// <summary>
 /// classifies why a record exists, not the truth of its payload (docs/decisions.md D-012).

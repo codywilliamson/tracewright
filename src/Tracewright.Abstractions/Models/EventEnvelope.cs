@@ -1,4 +1,4 @@
-namespace Tracewright.Core;
+namespace Tracewright.Abstractions;
 
 /// <summary>
 /// one event = one row (spec §1). immutable — no update or delete code path exists anywhere.

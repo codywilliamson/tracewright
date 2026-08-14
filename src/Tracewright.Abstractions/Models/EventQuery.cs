@@ -1,4 +1,4 @@
-namespace Tracewright.Core;
+namespace Tracewright.Abstractions;
 
 /// <summary>
 /// read-side filters for EventStore.Query. a null filter is not applied (spec §7).
