@@ -10,6 +10,7 @@ var invocationTimestamp = Timestamp.Now();
 
 using var services = new ServiceCollection()
     .AddSingleton<IEventStore>(new EventStore(DbPath.Resolve()))
+    .AddSingleton<InitCommand>()
     .AddSingleton<EmitClaudeCommand>()
     .AddSingleton<EmitGitCommand>()
     .AddSingleton<EmitRawCommand>()

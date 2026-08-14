@@ -36,6 +36,9 @@ public static class ClaudeHookAdapter
         ["WorktreeRemove"] = "claude.worktree.removed",
     };
 
+    /// <summary>the hook names this adapter translates — what `init` registers (spec §5).</summary>
+    public static IReadOnlyCollection<string> KnownHookEvents => EventTypeByHook.Keys;
+
     public static EventEnvelope Build(string stdin, string processCwd, string invocationTimestamp)
     {
         if (TryParseObject(stdin, out var root))

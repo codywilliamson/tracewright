@@ -7,6 +7,7 @@ namespace Tracewright.Cli.Commands;
 /// coverage test has something to walk.
 /// </summary>
 public sealed class RootCommandFactory(
+    InitCommand init,
     EmitClaudeCommand emitClaude,
     EmitGitCommand emitGit,
     EmitRawCommand emitRaw,
@@ -21,6 +22,7 @@ public sealed class RootCommandFactory(
         emit.Add(emitRaw.Build(invocationTimestamp));
 
         var root = new RootCommand("tracewright: local-first evidence ledger for agentic development");
+        root.Add(init.Build());
         root.Add(emit);
         root.Add(timeline.Build());
         root.Add(show.Build());

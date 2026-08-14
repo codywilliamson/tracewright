@@ -34,8 +34,10 @@ anything that ranks or summarizes. Evidence ledger first, memory system second.
 
 Download a self-contained binary from the latest green [CI
 run](../../actions/workflows/ci.yml) — `tracewright-win-x64` or
-`tracewright-linux-x64`. One file, no .NET install required. On Windows, unblock
-it after extracting (`Unblock-File .\tracewright.exe`).
+`tracewright-linux-x64`. No .NET install required. Each artifact also ships a
+`twr` shim, so both names work once the folder is on PATH. On Windows, unblock
+the exe after extracting (`Unblock-File .\tracewright.exe`); on Linux,
+`chmod +x tracewright twr`.
 
 Or build from source (.NET 10 SDK):
 
@@ -43,7 +45,12 @@ Or build from source (.NET 10 SDK):
 dotnet publish src/Tracewright.Cli -c Release --self-contained -r linux-x64 \
   -o ~/.local/share/tracewright/bin
 ln -sf ~/.local/share/tracewright/bin/tracewright ~/.local/bin/tracewright
+ln -sf ~/.local/share/tracewright/bin/tracewright ~/.local/bin/twr
 ```
+
+**`twr` is an alias for `tracewright`** — every command below works under either
+name. Committed configuration (hooks, settings) always uses the canonical
+`tracewright`, since a repo can't assume the alias exists.
 
 The store is created on first write at `~/.tracewright/tracewright.db`; reads
 never create it. `TRACEWRIGHT_DB` overrides the path.
@@ -51,6 +58,7 @@ never create it. `TRACEWRIGHT_DB` overrides the path.
 ## Use
 
 ```sh
+tracewright init                     # set up capture in a repository (see below)
 tracewright timeline                 # last 24h, whole ledger
 tracewright timeline --repo          # this repository (resolved from cwd)
 tracewright timeline --since 7d --type 'claude.*' --kind observed
@@ -72,19 +80,22 @@ echo '{"event_type":"note.recorded","payload":{"text":"chose sqlite over jsonl"}
 
 ## Wire it into a repository
 
-1. Give the repo an identity — `mkdir .tracewright && uuidgen > .tracewright/repo.id`,
-   then commit it.
-2. Add the Claude Code hooks: see [`.claude/settings.json`](.claude/settings.json)
-   in this repo for all 15 events (`async: true`, so capture never blocks the agent).
-3. Add `.git/hooks/post-commit`:
+```sh
+cd your-repo && twr init
+```
 
-   ```sh
-   #!/bin/sh
-   tracewright emit git post-commit || true
-   exit 0
-   ```
+`tracewright init` does three things and reports each one:
 
-Both hooks always exit 0. A broken Tracewright must never break a commit or a
+| It writes | Why |
+|---|---|
+| `.tracewright/repo.id` | repository identity — an opaque uuid. Commit it. |
+| `.claude/settings.json` | the hook block for all 15 Claude Code events (`async: true`, so capture never blocks the agent). Commit it. |
+| `post-commit` hook | records each commit. Placed where `core.hooksPath` points. |
+
+It is idempotent and non-destructive: an existing `repo.id` is never
+regenerated, your own settings and hooks are preserved, and a post-commit hook
+it didn't write is left alone with instructions rather than overwritten. Both
+hooks always exit 0 — a broken Tracewright must never break a commit or a
 session.
 
 ## Development

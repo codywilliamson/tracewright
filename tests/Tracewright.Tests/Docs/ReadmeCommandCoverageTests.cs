@@ -25,6 +25,7 @@ public class ReadmeCommandCoverageTests
     {
         var store = new EventStore(Path.Combine(Path.GetTempPath(), "unused.db"));
         return new RootCommandFactory(
+            new InitCommand(),
             new EmitClaudeCommand(store),
             new EmitGitCommand(store),
             new EmitRawCommand(store),
